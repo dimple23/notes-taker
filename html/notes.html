@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css">
+<!-- <link rel="stylesheet" href="style.css"> -->
+<title>Title</title>
+</head>
+<body>
+<div class="container">
+<div class="card mb-5">
+  <h4 class="card-header text-center border-danger"> Add Notes</h4>
+  <a href="/" class="btn btn-lg btn-info border-warning"><i class="fas fa-home"></i> Go Back Home</a>
+     
+</div>
+<div class="card mb-5">
+    <h3 class="card-header border-warning text-center">Add Notes.</h3>
+    <div class="card-body">
+      <form id="notelist-form">
+        <div class="form-group">
+          <label for="title-input">title:</label>
+          <input type="text" id="title-input" class="form-control" />
+        </div>
+        <div class="form-group">
+          <label for="body-input">body:</label>
+          <input type="text" id="body-input" class="form-control" />
+        </div>
+      
+        <button type="submit" class="btn btn-block btn-outline-success"><i class="fas fa-save"></i> Save Notes</button>
+      </form>
+    </div>
+  </div>
+
+</div>
+<div class="container">
+<div class="row">
+    
+    <div class="col-12 ">
+      <div class="card">
+        <h4 class="card-header border-warning">
+          Notes
+        </h4>
+        <!-- <ul class="list-group list-group-flush  " id="note"> -->
+        <ul class="list-group list-group-flush" id="notelist">
+          <!-- <div id="notelist" class="deleteBtn "> -->
+          <!-- <div id="notelist"></div> -->
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js"></script>
+
+<script>
+$(document).ready(function(){
+  /// add event listener for form submission
+  $("#notelist-form").on("submit", function(event) {
+      event.preventDefault();
+
+      // package up data in input tags
+      const notesData = {
+        title: $("#title-input").val().trim(),
+        body: $("#body-input").val().trim(),
+        
+      }
+
+      // check if any of these inputs are empty and return false if they are
+      if (!notesData.title || !notesData.body) {
+        return false;
+      }
+
+      // POST data using ajax
+      $.ajax({
+        url: "/api/tables",
+        method: "POST",
+        data: notesData // this is req.body
+      })
+      .then(function(apiResponse) {
+        console.log(apiResponse);
+        location.reload();
+      });
+
+    });
+
+  })
+
+$.ajax({
+        url: "/api/tables",
+        method: "GET"
+      })
+      .then(function (tableData) {
+        tableData.forEach(printTable);
+      });
+
+    function printTable(tableInfo) {
+      console.log(tableInfo);
+     
+      const $li = $("<li>").addClass("list-group-item");
+  
+      // add content to <li>
+      $li
+      .append(`ID: ${tableInfo.id} - ${tableInfo.title} || ${tableInfo.body} || ${tableInfo.created_at}`);
+      
+
+      $("<button>")
+           .addClass("btn float-right deleteBtn")
+           .html(`<i class="fas fa-trash-alt"></i>`)
+           .attr("keyID",tableInfo.id)
+           .appendTo($li);
+
+      $("#notelist").prepend($li);
+    
+
+//$("#notelist").on("click",".deleteBtn", function(event) {
+$(".deleteBtn").on("click", function(event) {
+
+    console.log("DeleteBtn clicked functionality...");
+
+    var keyID = $(this).attr("keyID");
+    console.log("keyID = " + $(this).attr("keyID"));
+    
+    $.ajax("/api/tables/" +keyID, {
+      method: "DELETE"
+    }).then(
+      function(apiResponse) {
+        console.log("Inside .then of DELETE: /api/notes/"+ keyID);
+        console.log(apiResponse);
+
+        // Reload the page to get the updated list
+        location.reload();
+      });
+
+
+    });
+  }
+</script>
+
+</body>
+</html>
